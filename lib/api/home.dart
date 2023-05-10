@@ -1,8 +1,6 @@
 import 'dart:convert';
-import 'package:apiproject/api/model/From.dart';
 import 'package:apiproject/api/register_from/sign_up_from.dart';
 import 'package:http/http.dart' as http;
-import 'package:apiproject/api/model/user_from.dart';
 import 'package:flutter/material.dart';
 
 class ShowDataHomeScreen extends StatefulWidget {
@@ -15,6 +13,8 @@ class ShowDataHomeScreen extends StatefulWidget {
 class _ShowDataHomeScreenState extends State<ShowDataHomeScreen> {
 
   List userList = [];
+  bool isLoading = true;
+  String userid = '13';
 
   @override
   void initState() {
@@ -24,9 +24,8 @@ class _ShowDataHomeScreenState extends State<ShowDataHomeScreen> {
 
   // Fetch Data for Api
   Future<void> getUserApi() async {
-
     final uri = Uri.parse('http://testapi.sojo.com.my/api/address/get_by_user.php');
-    final response = await http.post(uri,body: jsonEncode({"user_id": "16",}));
+    final response = await http.post(uri,body: jsonEncode({"user_id": userid,}));
 
     if(response.statusCode == 200) {
       final json = jsonDecode(response.body) as Map;
@@ -37,24 +36,18 @@ class _ShowDataHomeScreenState extends State<ShowDataHomeScreen> {
   }
 
   // Delete Data for Api
-  Future<void> deleteById(String id) async {
-
+  Future<void> deleteById(String id,index) async {
     final uri = Uri.parse('http://testapi.sojo.com.my/api/address/delete_address.php');
     final response = await http.post(uri,headers:{"content-type": "application/json",},
     body: jsonEncode({
-      "user_id": "16",
-      "id": "111",
+      "user_id": userid,
+      "id": id,
     }));
-
     if(response.statusCode == 200){
-      final filter = userList.where((element) => element['id'] != id).toList();
-      setState(() {
-        userList = filter;
-      });
+     userList.removeAt(index);
+      setState(() {});
     }else {}
   }
-
-
 
 
   @override
@@ -64,10 +57,10 @@ class _ShowDataHomeScreenState extends State<ShowDataHomeScreen> {
       body: ListView.builder(
         itemCount: userList.length,
         itemBuilder: (context, index){
-          final user = userList[index] as Map;
-          final id = user['user_id'] as String;
+          // final user = userList[index] as Map;
+          final id = userList[index]['address_id'].toString();
           return Container(
-            height: 250,
+            height: 300,
             margin: const EdgeInsets.all(25),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -75,17 +68,17 @@ class _ShowDataHomeScreenState extends State<ShowDataHomeScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("User Id : ${user['user_id'].toString()}"),
-                    Text("Address Id : ${user['address_id'].toString()}"),
-                    Text("Name : ${user['name'].toString()}"),
-                    Text("Phone No : ${user['phone_no'].toString()}"),
-                    Text("Alternate Phone No. : ${user['alternate_phoneno'].toString()}"),
-                    Text("Zipcode : ${user['zipcode'].toString()}"),
-                    Text("Address 1 : ${user['address_line_1'].toString()}"),
-                    Text("Address 2 : ${user['address_line_2'].toString()}"),
-                    Text("City : ${user['city'].toString()}"),
-                    Text("State : ${user['state'].toString()}"),
-                    Text("Created Data : ${user['created_at'].toString()}"),
+                    Text("User Id : ${userList[index]['user_id'].toString()}",style: const TextStyle(fontSize: 20),),
+                    Text("Address Id : ${userList[index]['address_id'].toString()}",style: const TextStyle(fontSize: 20),),
+                    Text("Name : ${userList[index]['name'].toString()}",style: const TextStyle(fontSize: 20),),
+                    Text("Phone No : ${userList[index]['phone_no'].toString()}",style: const TextStyle(fontSize: 20),),
+                    Text("Alternate Phone No. : ${userList[index]['alternate_phoneno'].toString()}",style: const TextStyle(fontSize: 20),),
+                    Text("Zipcode : ${userList[index]['zipcode'].toString()}",style: const TextStyle(fontSize: 20),),
+                    Text("Address 1 : ${userList[index]['address_line_1'].toString()}",style: const TextStyle(fontSize: 20),),
+                    Text("Address 2 : ${userList[index]['address_line_2'].toString()}",style: const TextStyle(fontSize: 20),),
+                    Text("City : ${userList[index]['city'].toString()}",style: const TextStyle(fontSize: 20),),
+                    Text("State : ${userList[index]['state'].toString()}",style: const TextStyle(fontSize: 20),),
+                    Text("Created Data : ${userList[index]['created_at'].toString()}",style: const TextStyle(fontSize: 20),),
                   ],
                 ),
                Row(
@@ -93,14 +86,14 @@ class _ShowDataHomeScreenState extends State<ShowDataHomeScreen> {
                    ElevatedButton(
                        style:ElevatedButton.styleFrom(backgroundColor: Colors.red),
                        onPressed: (){
-                         deleteById(id);
+                         deleteById(id,index);
                         }, child: const Text('Delete')),
-                   const SizedBox(width: 20,),
+                   const SizedBox(width: 5,),
                    ElevatedButton(
                        style:ElevatedButton.styleFrom(backgroundColor: Colors.green),
                        onPressed: (){
-                         navigatorEditPages(user);
-                         print('Edit');}, child: const Text('Edit'),
+                         navigatorEditPages(userList[index]);
+                         }, child: const Text('Edit'),
                    ),
                  ],
                ),
@@ -110,14 +103,28 @@ class _ShowDataHomeScreenState extends State<ShowDataHomeScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(onPressed: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterFrom()));
+        navigatorAddPages();
       },child: const Icon(Icons.add),),
     );
   }
-  void navigatorEditPages(Map user){
+  Future<void> navigatorEditPages(Map user) async{
     final route = MaterialPageRoute(builder: (context) =>  RegisterFrom(userData: user));
-    Navigator.push(context, route);
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    getUserApi();
   }
+
+  Future<void> navigatorAddPages() async{
+    final route = MaterialPageRoute(builder: (context) =>  const RegisterFrom());
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    getUserApi();
+  }
+
 }
 
 

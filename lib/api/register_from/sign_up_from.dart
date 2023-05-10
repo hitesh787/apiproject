@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:apiproject/api/custom_text_field.dart';
+import 'package:apiproject/api/model/From.dart';
+import 'package:apiproject/model/UserModel.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -25,6 +27,7 @@ class _RegisterFromState extends State<RegisterFrom> {
   TextEditingController stateController = TextEditingController();
 
   bool isEdit = false;
+  // String addressId = '146';
 
   @override
   void initState(){
@@ -58,44 +61,39 @@ class _RegisterFromState extends State<RegisterFrom> {
   // Update Api
   Future<void> updateApi() async {
 
-    // final userData = widget.userData;
-    // if(userData == null){
-    //   print( 'Not ');
-    //   return;
-    // }
-
   final userid = userIdController.text;
   final name = nameController.text;
   final phone = phoneController.text;
   final alterNative = alterPhoneController.text;
   final zipcode = zipcodeController.text;
-  final address_line_1 = address1Controller.text;
-  final address_line_2 = address2Controller.text;
+  final addressLine1 = address1Controller.text;
+  final addressLine2 = address2Controller.text;
   final city = cityController.text;
   final state = stateController.text;
 
   final uri = Uri.parse('http://testapi.sojo.com.my/api/address/update_address.php');
   final response = await http.post(uri,
     body: jsonEncode({
-      "id":"112",
+      "id": widget.userData!['address_id'].toString(),
       "user_id": userid,
       "name": name,
       "phone_no": phone,
       "alternate_phoneno": alterNative,
       "zipcode": zipcode,
-      "address_line_1": address_line_1,
-      "address_line_2": address_line_2,
+      "address_line_1": addressLine1,
+      "address_line_2": addressLine2,
       "city": city,
       "state": state,
-    }),headers: {'Content-Type': 'application/json'},);
+    }),headers: {'Content-Type': 'application/json'});
 
   if(response.statusCode == 200) {
     print('Update successfully');
   }else{
-    print('Update error');
+    print('Update Error');
   }
 }
 
+  //Create Api
   Future<void> createApi() async {
 
     final userid = userIdController.text;
@@ -132,10 +130,9 @@ class _RegisterFromState extends State<RegisterFrom> {
       address2Controller.text= '';
       cityController.text= '';
       stateController.text= '';
-
       print('successfully');
     }else{
-      print('error');
+      print('Error');
     }
   }
 
@@ -167,7 +164,7 @@ class _RegisterFromState extends State<RegisterFrom> {
             const SizedBox(height: 10,),
             CustomTextField(hintText: 'state', controller: stateController),
             const SizedBox(height: 20,),
-            ElevatedButton(onPressed: isEdit ? updateApi :createApi, child: Text(isEdit ? 'Update Data':'Save Data'))
+            ElevatedButton(onPressed:  isEdit ? updateApi : createApi, child: Text( isEdit ? 'Update Data' : 'Save Data'))
           ],
         ),
       ),
